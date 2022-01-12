@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+{%load static%}
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="shortcut icon" href='{% static "/images/favicon.ico" %}' type="image/x-icon">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        function updateElementIndex(el, prefix, ndx) {
+            var id_regex = new RegExp('(' + prefix + '-\\d+)');
+            var replacement = prefix + '-' + ndx;
+            if ($(el).attr("for")) $(el).attr("for", $(el).attr("for").replace(id_regex, replacement));
+            if (el.id) el.id = el.id.replace(id_regex, replacement);
+            if (el.name) el.name = el.name.replace(id_regex, replacement);
+        }
+        function cloneMore(selector, prefix) {
+            var newElement = $(selector).clone(true);
+            var total = $('#id_' + prefix + '-TOTAL_FORMS').val();
+            newElement.find(':input:not([type=button]):not([type=submit]):not([type=reset])').each(function () {
+                var name = $(this).attr('name')
+                if (name) {
+                    name = name.replace('-' + (total - 1) + '-', '-' + total + '-');
+                    var id = 'id_' + name;
+                    $(this).attr({ 'name': name, 'id': id }).val('').removeAttr('checked');
+                }
+            });
+            newElement.find('label').each(function () {
+                var forValue = $(this).attr('for');
+                if (forValue) {
+                    forValue = forValue.replace('-' + (total - 1) + '-', '-' + total + '-');
+                    $(this).attr({ 'for': forValue });
+                }
+            });
+            total++;
+            $('#id_' + prefix + '-TOTAL_FORMS').val(total);
+            $(selector).after(newElement);
+            var conditionRow = $('.form-row:not(:last)');
+            conditionRow.find('.btn.add-form-row')
+                .removeClass('btn-success').addClass('btn-danger')
+                .removeClass('add-form-row').addClass('remove-form-row')
+                .html('-');
+            return false;
+        }
+        function deleteForm(prefix, btn) {
+            var total = parseInt($('#id_' + prefix + '-TOTAL_FORMS').val());
+            if (total > 1) {
+                btn.closest('.form-row').remove();
+                var forms = $('.form-row');
+                $('#id_' + prefix + '-TOTAL_FORMS').val(forms.length);
+                for (var i = 0, formCount = forms.length; i < formCount; i++) {
+                    $(forms.get(i)).find(':input').each(function () {
+                        updateElementIndex(this, prefix, i);
+                    });
+                }
+            }
+            return false;
+        }
+        $(document).on('click', '.add-form-row', function (e) {
+            e.preventDefault();
+            cloneMore('.form-row:last', 'form');
+            return false;
+        });
+        $(document).on('click', '.remove-form-row', function (e) {
+            e.preventDefault();
+            deleteForm('form', $(this));
+            return false;
+        });
+
+    </script>
+    <style>
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+        }
+
+        /* .container {
+      height: 100%;
+      align-content: center;
+
+    } */
+        .jumbotron {
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+            /* height: 560px; */
+            margin-top: 160px;
+            margin-bottom: 160px;
+            width: 900px;
+            background-color: #F5F5F5;
+            opacity: 0.9;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .login_btn {
+            color: black;
+            background-color: #FFFF00;
+            width: 100px;
+        }
+
+        .login_btn:hover {
+            color: black;
+            background-color: red;
+        }
+    </style>
+    <title>Application form</title>
+
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-sm bg-primary navbar-dark shadow-lg p-3 mb-5 fixed-top ">
+        <a class="navbar-brand" href="#"> <img src='{% static "/images/image6.jpg" %}' alt="Logo" style="width:200px;">
+        </a>
+    </nav>
+    <div class="d-flex justify-content-center">
+        <div class="jumbotron">
+            <h1 class="mb-3 text-center">Application form</h1>
+
+            <form class="form-horizontal" method="POST" action="" id="student" data-url="{% url 'load_semesters' %}"
+                novalidate>
+                {% csrf_token %}
+                {{ formset.management_form }}
+                {% for form in formset %}
+
+                <div class="row form-row spacer">
+                    <div class="col-2">
+                        <label>{{form.department.label}}</label>
+                    </div>
+                    <div class="col-4">
+                        <div class="input-group">
+                            {{form.department}}
+                        </div>
+                    </div>
+
+                    <!-- <select name="Department" id="department_id" class="form-control">
+                        <option value="">---select Department---</option>
+                        {% for i in department %}
+                        <option value="{{i.id}}">{{i.name}}</option>
+                        {% endfor %}
+                    </select> -->
+
+                    <div class="col-2">
+                        <label>{{form.semester.label}}</label>
+                    </div>
+                    <div class="col-4">
+                        <div class="input-group">
+                            {{form.semester}}
+
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <label>{{form.exam_type.label}}</label>
+                    </div>
+                    <div class="col-4">
+                        <div class="input-group">
+                            {{form.exam_type}}
+
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <label>{{form.subject.label}}</label>
+                    </div>
+                    <div class="col-4">
+                        <div class="input-group">
+                            {{form.subject}}
+
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <label>{{form.subject_code.label}}</label>
+                    </div>
+                    <div class="col-4">
+                        <div class="input-group">
+                            {{form.subject_code}}
+
+                        </div>
+                    </div>
+                    <div class="input-group-append">
+                        <button class="btn btn-success add-form-row">+</button>
+                    </div>
+                </div>
+                {% endfor %}
+
+
+                <div class="row spacer">
+                    <div class="col-4 offset-2">
+                        <button type="submit" class="btn btn-block btn-primary">Submit</button>
+                    </div>
+                </div>
+            </form>
+
+
+            <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+            <script>
+                $("[id^=id_form-][id $=-department").on('change', function () {
+                    // console.log($(this).attr('id'));
+                    var id = $(this).attr('id')
+                    var i = id.replace('id_form-', '').replace('-department', '')
+                    var url = $("#student").attr("data-url");  // get the url of the `load_cities` view
+                    var deptId = $(this).val();  // get the selected country ID from the HTML input
+                    debugger
+                    $.ajax({                       // initialize an AJAX request
+                        url: '{% url "load_semesters" %}',                    // set the url of the request (= localhost:8000/hr/ajax/load-cities/)
+                        data: {
+                            'department': deptId       // add the country id to the GET parameters
+                        },
+                        success: function (data) {   // `data` is the return of the `load_cities` view function
+                            $("#id_form-" + i + "-semester").html(data);  // replace the contents of the city input with the data that came from the server
+                        }
+                    });
+
+                });
+                // this one is for fetching vanue data
+                $("[id^=id_form-][id $=-semester").on('change', function () {
+                    //django-model-form created this id
+                    var id = $(this).attr('id')
+                    var i = id.replace('id_form-', '').replace('-semester', '')
+                    var url = $("#student").attr("data-url");  // get the url of the `load_cities` view
+                    var semId = $(this).val();  // get the selected country ID from the HTML input
+
+                    $.ajax({                       // initialize an AJAX request
+                        url: '{% url "load_subjects" %}',                    // set the url of the request (= localhost:8000/hr/ajax/load-cities/) person_form.html template has this url var
+                        data: {
+                            'semester': semId       // add the country id to the GET parameters
+                        },
+                        success: function (data) {   // `data` is the return of the `load_cities` view function
+                            $("#id_form-" + i + "-subject").html(data);  // replace the contents of the city input with the data that came from the server
+                        }
+                    });
+
+                });
+            </script>
+
+
+
+
+
+
+
+
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!--  &lt;!&ndash; <div class="d-flex justify-content-left">-->
+    <!--      <img src='{% static "/images/image5.png" %}'>-->
+    <!--      </div> &ndash;&gt;-->
+    <!--  <div class="container">-->
+    <!--    <div class="d-flex justify-content-center">-->
+    <!--      <div class="jumbotron">-->
+    <!--        <img src='{% static "/images/image5.png" %}'>-->
+    <!--        </br>-->
+    <!--        </br>-->
+    <!--        <form name="form" action="" method="POST">-->
+
+    <!--          {% csrf_token %}-->
+    <!--          {{ form.as_p }}-->
+    <!--          <button type="button" name="add" class="btn btn-primary">ADD</button>-->
+    <!--          <input type="submit" value="Submit" class="btn float-right login_btn">-->
+    <!--        </form>-->
+    <!--      </div>-->
+    <!--    </div>-->
+    <!--  </div>-->
+
+    <!--  {% for item in details %}-->
+    <!--  {{ item }}-->
+    <!--  {% endfor %}-->
+
+</body>
+
+</html>
